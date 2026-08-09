@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contact Book</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Archivo:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root{
+    --paper:#f3ece0;
+    --card:#fffaf1;
+    --ink:#2b2420;
+    --ink-soft:#6b6055;
+    --rust:#b5502f;
+    --rust-dark:#8f3d22;
+    --line:#d9cdb8;
+    --tab-green:#5c6b4f;
+    --tab-blue:#3f5468;
+    --error:#a8332b;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(circle at 15% 10%, rgba(181,80,47,0.05), transparent 40%),
+      var(--paper);
+    color:var(--ink);
+    font-family:'Archivo',sans-serif;
+    min-height:100vh;
+    padding:32px 20px 80px;
+  }
+
+  .wrap{max-width:900px; margin:0 auto;}
+
+  /* ---------- Header ---------- */
+  header{
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    border-bottom:3px solid var(--ink);
+    padding-bottom:18px;
+    margin-bottom:28px;
+    flex-wrap:wrap;
+    gap:14px;
+  }
+  .brand-mark{
+    display:flex;
+    align-items:center;
+    gap:14px;
+  }
+  .brand-mark .dot{
+    width:14px;height:14px;border-radius:50%;
+    background:var(--rust);
+    box-shadow: 18px 0 0 -4px var(--tab-green), 34px 0 0 -4px var(--tab-blue);
+  }
+  h1{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:clamp(28px,5vw,42px);
+    margin:0;
+    letter-spacing:-0.01em;
+  }
+  .tagline{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    color:var(--ink-soft);
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    margin-top:4px;
+  }
+  .count-badge{
+    font-family:'JetBrains Mono',monospace;
+    font-size:13px;
+    color:var(--ink-soft);
+    border:1px solid var(--line);
+    padding:6px 12px;
+    border-radius:100px;
+    background:var(--card);
+  }
+
+  /* ---------- Toolbar ---------- */
+  .toolbar{
+    display:flex;
+    gap:12px;
+    margin-bottom:26px;
+    flex-wrap:wrap;
+  }
+  .search-box{
+    flex:1;
+    min-width:220px;
+    position:relative;
+  }
+  .search-box input{
+    width:100%;
+    padding:13px 16px 13px 40px;
+    border:1.5px solid var(--ink);
+    border-radius:4px;
+    font-family:'Archivo',sans-serif;
+    font-size:15px;
+    background:var(--card);
+    color:var(--ink);
+    outline:none;
+    transition:box-shadow .15s ease;
+  }
+  .search-box input:focus{
+    box-shadow:0 0 0 3px rgba(181,80,47,0.15);
+    border-color:var(--rust);
+  }
+  .search-box svg{
+    position:absolute; left:13px; top:50%; transform:translateY(-50%);
+    width:16px;height:16px; stroke:var(--ink-soft);
+  }
+  .btn{
+    font-family:'Archivo',sans-serif;
+    font-weight:600;
+    font-size:14px;
+    padding:13px 22px;
+    border-radius:4px;
+    border:1.5px solid var(--ink);
+    background:var(--ink);
+    color:var(--paper);
+    cursor:pointer;
+    transition:transform .12s ease, box-shadow .12s ease;
+    white-space:nowrap;
+  }
+  .btn:hover{ transform:translateY(-1px); box-shadow:3px 3px 0 var(--rust); }
+  .btn:active{ transform:translateY(0); box-shadow:none; }
+  .btn.secondary{
+    background:transparent;
+    color:var(--ink);
+  }
+  .btn.secondary:hover{ box-shadow:3px 3px 0 var(--ink); }
+
+  /* ---------- Status ---------- */
+  .status{
+    font-family:'JetBrains Mono',monospace;
+    font-size:13px;
+    padding:10px 14px;
+    border-radius:4px;
+    margin-bottom:18px;
+    display:none;
+  }
+  .status.show{display:block;}
+  .status.error{ background:#f6e3e0; color:var(--error); border:1px solid #e3b7ae; }
+  .status.ok{ background:#e7ecdf; color:#42522f; border:1px solid #c3cfae; }
+
+  /* ---------- Cards ---------- */
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(260px,1fr));
+    gap:16px;
+  }
+  .card{
+    background:var(--card);
+    border:1.5px solid var(--ink);
+    border-radius:6px;
+    padding:18px 18px 16px;
+    position:relative;
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .card::before{
+    content:'';
+    position:absolute; top:0; left:20px;
+    width:34px; height:10px;
+    background:var(--rust);
+    border-radius:0 0 4px 4px;
+    opacity:0.85;
+  }
+  .card:nth-child(3n+2)::before{ background:var(--tab-green); }
+  .card:nth-child(3n+3)::before{ background:var(--tab-blue); }
+  .card:hover{ transform:translateY(-2px); box-shadow:4px 5px 0 rgba(43,36,32,0.15); }
+
+  .card-name{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:20px;
+    margin:10px 0 10px;
+  }
+  .card-field{
+    font-size:13.5px;
+    color:var(--ink-soft);
+    margin-bottom:4px;
+    display:flex;
+    gap:6px;
+  }
+  .card-field .lbl{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;
+    text-transform:uppercase;
+    color:var(--rust-dark);
+    letter-spacing:0.05em;
+    width:52px;
+    flex-shrink:0;
+    padding-top:2px;
+  }
+  .card-actions{
+    display:flex;
+    gap:8px;
+    margin-top:14px;
+    padding-top:12px;
+    border-top:1px dashed var(--line);
+  }
+  .icon-btn{
+    flex:1;
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    padding:7px 0;
+    border-radius:4px;
+    border:1px solid var(--line);
+    background:transparent;
+    color:var(--ink-soft);
+    cursor:pointer;
+    transition:all .12s ease;
+  }
+  .icon-btn:hover{ border-color:var(--ink); color:var(--ink); }
+  .icon-btn.danger:hover{ border-color:var(--error); color:var(--error); background:#f9ece9; }
+
+  .empty{
+    text-align:center;
+    padding:60px 20px;
+    color:var(--ink-soft);
+    font-family:'JetBrains Mono',monospace;
+    font-size:13px;
+    border:1.5px dashed var(--line);
+    border-radius:6px;
+  }
+
+  /* ---------- Modal ---------- */
+  .overlay{
+    position:fixed; inset:0;
+    background:rgba(43,36,32,0.45);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:50;
+    padding:20px;
+  }
+  .overlay.show{ display:flex; }
+  .modal{
+    background:var(--card);
+    border:1.5px solid var(--ink);
+    border-radius:8px;
+    width:100%;
+    max-width:420px;
+    padding:28px;
+    box-shadow:6px 6px 0 var(--rust);
+  }
+  .modal h2{
+    font-family:'Fraunces',serif;
+    font-size:24px;
+    margin:0 0 20px;
+  }
+  .field{ margin-bottom:14px; }
+  .field label{
+    display:block;
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    color:var(--ink-soft);
+    margin-bottom:6px;
+  }
+  .field input, .field textarea{
+    width:100%;
+    padding:10px 12px;
+    border:1.5px solid var(--line);
+    border-radius:4px;
+    font-family:'Archivo',sans-serif;
+    font-size:14px;
+    background:#fff;
+    color:var(--ink);
+    outline:none;
+  }
+  .field input:focus, .field textarea:focus{ border-color:var(--rust); }
+  .field textarea{ resize:vertical; min-height:56px; }
+  .modal-actions{
+    display:flex;
+    gap:10px;
+    margin-top:22px;
+  }
+  .modal-actions .btn{ flex:1; text-align:center; }
+
+  @media (max-width:520px){
+    .grid{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header>
+    <div>
+      <div class="brand-mark">
+        <span class="dot"></span>
+        <h1>ContactBook</h1>
+      </div>
+      <div class="tagline">your contact book, wired to postgres</div>
+    </div>
+    <div class="count-badge" id="countBadge">0 contacts</div>
+  </header>
+
+  <div class="toolbar">
+    <div class="search-box">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input type="text" id="searchInput" placeholder="Search by name…">
+    </div>
+    <button class="btn secondary" id="clearSearchBtn">Clear</button>
+    <button class="btn" id="addBtn">+ New Contact</button>
+  </div>
+
+  <div class="status" id="statusBox"></div>
+
+  <div class="grid" id="grid"></div>
+  <div class="empty" id="emptyState" style="display:none;">No contacts yet. Add your first one above.</div>
+</div>
+
+<!-- Modal -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h2 id="modalTitle">New Contact</h2>
+    <form id="contactForm">
+      <input type="hidden" id="contactId">
+      <div class="field">
+        <label>Name</label>
+        <input type="text" id="fName" required>
+      </div>
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="fEmail" required>
+      </div>
+      <div class="field">
+        <label>Phone</label>
+        <input type="text" id="fPhone" required>
+      </div>
+      <div class="field">
+        <label>Address (optional)</label>
+        <textarea id="fAddress"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn secondary" id="cancelBtn">Cancel</button>
+        <button type="submit" class="btn" id="saveBtn">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  const API = "http://127.0.0.1:8000/contacts";
+
+  const grid = document.getElementById("grid");
+  const emptyState = document.getElementById("emptyState");
+  const countBadge = document.getElementById("countBadge");
+  const statusBox = document.getElementById("statusBox");
+  const overlay = document.getElementById("overlay");
+  const modalTitle = document.getElementById("modalTitle");
+  const contactForm = document.getElementById("contactForm");
+  const searchInput = document.getElementById("searchInput");
+
+  let editingId = null;
+
+  function showStatus(msg, type){
+    statusBox.textContent = msg;
+    statusBox.className = "status show " + type;
+    setTimeout(() => statusBox.classList.remove("show"), 3500);
+  }
+
+  function initials(name){
+    return name.split(" ").map(w => w[0]).join("").slice(0,2).toUpperCase();
+  }
+
+  function renderContacts(contacts){
+    grid.innerHTML = "";
+    countBadge.textContent = contacts.length + (contacts.length === 1 ? " contact" : " contacts");
+
+    if (contacts.length === 0){
+      emptyState.style.display = "block";
+      return;
+    }
+    emptyState.style.display = "none";
+
+    contacts.forEach(c => {
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `
+        <div class="card-name">${escapeHtml(c.name)}</div>
+        <div class="card-field"><span class="lbl">Email</span><span>${escapeHtml(c.email)}</span></div>
+        <div class="card-field"><span class="lbl">Phone</span><span>${escapeHtml(c.phone)}</span></div>
+        ${c.address ? `<div class="card-field"><span class="lbl">Addr</span><span>${escapeHtml(c.address)}</span></div>` : ""}
+        <div class="card-actions">
+          <button class="icon-btn" onclick="openEdit(${c.id})">Edit</button>
+          <button class="icon-btn danger" onclick="deleteContact(${c.id})">Delete</button>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+  }
+
+  function escapeHtml(str){
+    const div = document.createElement("div");
+    div.textContent = str ?? "";
+    return div.innerHTML;
+  }
+
+  let allContactsCache = [];
+
+  async function loadContacts(){
+    try {
+      const res = await fetch(API + "/");
+      if (!res.ok) throw new Error("Failed to load");
+      const data = await res.json();
+      allContactsCache = data;
+      renderContacts(data);
+    } catch(e){
+      showStatus("Could not reach backend — is the server running on :8000?", "error");
+    }
+  }
+
+  async function searchContacts(name){
+    if (!name.trim()){
+      renderContacts(allContactsCache);
+      return;
+    }
+    try {
+      const res = await fetch(API + "/search?name=" + encodeURIComponent(name));
+      if (!res.ok) throw new Error("Search failed");
+      const data = await res.json();
+      renderContacts(data);
+    } catch(e){
+      showStatus("Search failed", "error");
+    }
+  }
+
+  let searchTimer;
+  searchInput.addEventListener("input", (e) => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => searchContacts(e.target.value), 300);
+  });
+
+  document.getElementById("clearSearchBtn").addEventListener("click", () => {
+    searchInput.value = "";
+    renderContacts(allContactsCache);
+  });
+
+  function openModal(){ overlay.classList.add("show"); }
+  function closeModal(){
+    overlay.classList.remove("show");
+    contactForm.reset();
+    editingId = null;
+  }
+
+  document.getElementById("addBtn").addEventListener("click", () => {
+    modalTitle.textContent = "New Contact";
+    editingId = null;
+    openModal();
+  });
+  document.getElementById("cancelBtn").addEventListener("click", closeModal);
+  overlay.addEventListener("click", (e) => { if (e.target === overlay) closeModal(); });
+
+  window.openEdit = function(id){
+    const c = allContactsCache.find(x => x.id === id);
+    if (!c) return;
+    editingId = id;
+    modalTitle.textContent = "Edit Contact";
+    document.getElementById("fName").value = c.name;
+    document.getElementById("fEmail").value = c.email;
+    document.getElementById("fPhone").value = c.phone;
+    document.getElementById("fAddress").value = c.address || "";
+    openModal();
+  };
+
+  window.deleteContact = async function(id){
+    if (!confirm("Delete this contact?")) return;
+    try {
+      const res = await fetch(`${API}/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Delete failed");
+      showStatus("Contact deleted", "ok");
+      await loadContacts();
+    } catch(e){
+      showStatus("Could not delete contact", "error");
+    }
+  };
+
+  contactForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const payload = {
+      name: document.getElementById("fName").value,
+      email: document.getElementById("fEmail").value,
+      phone: document.getElementById("fPhone").value,
+      address: document.getElementById("fAddress").value || null
+    };
+
+    try {
+      let res;
+      if (editingId){
+        res = await fetch(`${API}/${editingId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+      } else {
+        res = await fetch(API + "/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+      }
+
+      if (!res.ok){
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || "Save failed");
+      }
+
+      showStatus(editingId ? "Contact updated" : "Contact added", "ok");
+      closeModal();
+      await loadContacts();
+    } catch(e){
+      showStatus(e.message || "Something went wrong (maybe duplicate email/phone?)", "error");
+    }
+  });
+
+  loadContacts();
+</script>
+
+</body>
+</html>
